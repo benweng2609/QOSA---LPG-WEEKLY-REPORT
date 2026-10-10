@@ -1,0 +1,299 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>QOSA · LPG 七信号周报</title>
+<meta name="description" content="VLGC 市场七个关键信号的每周追踪：运价、海峡通行、巴拿马拍卖、沙特CP、美国出口、PDH开工率、新签订单。">
+<meta property="og:title" content="QOSA · LPG 七信号周报">
+<meta property="og:description" content="VLGC 市场七个关键信号的每周追踪：运价、海峡通行、巴拿马拍卖、沙特CP、美国出口、PDH开工率、新签订单。">
+<meta property="og:type" content="website">
+<meta property="og:image" content="og-cover.png">
+<meta property="og:locale" content="zh_CN">
+<style>
+  :root{
+    --bg:#0a1420; --bg2:#0e1c2e; --card:#12233a; --card2:#16293f;
+    --line:#1f3a5c;
+    --text:#c6d3e2; --acc:#4fc3f7;
+    --bull:#51d88a; --bear:#ff6b6b; --neu:#ffb454;
+  }
+  *{margin:0;padding:0;box-sizing:border-box}
+  html{scroll-behavior:smooth}
+  html,body{overflow-x:clip;width:100%;max-width:100vw}
+  body{background:var(--bg);color:var(--text);font-family:"Noto Sans SC","PingFang SC","Microsoft YaHei",sans-serif;line-height:1.85;-webkit-font-smoothing:antialiased;-webkit-text-size-adjust:100%;text-size-adjust:100%}
+  .serif{font-family:"Noto Serif SC",serif}
+  a{color:var(--acc);text-decoration:none}
+  .wrap{max-width:960px;margin:0 auto;padding:0 22px;min-width:0}
+
+  /* ===== 顶栏 ===== */
+  #topnav{position:fixed;top:0;left:0;right:0;z-index:50;background:rgba(10,20,32,.92);backdrop-filter:blur(10px);border-bottom:1px solid var(--line)}
+  #topnav .bar{max-width:960px;margin:0 auto;padding:10px 22px;display:flex;align-items:center;justify-content:space-between}
+  #topnav .brand img{height:30px;display:block}
+  #topnav .wk{font-size:13px;color:var(--acc);letter-spacing:.15em;font-weight:600}
+  #topnav .links{display:flex;gap:4px}
+  #topnav .links a{color:var(--text);padding:4px 12px;border-radius:14px;font-size:13px;transition:.2s}
+  #topnav .links a:hover{color:var(--acc);background:rgba(79,195,247,.12)}
+  #topnav .burger{display:none;background:none;border:0;cursor:pointer;padding:8px}
+  #topnav .burger span{display:block;width:24px;height:2px;background:var(--text);margin:5px 0;border-radius:1px;transition:.25s}
+  #topnav .burger.open span:nth-child(1){transform:translateY(7px) rotate(45deg)}
+  #topnav .burger.open span:nth-child(2){opacity:0}
+  #topnav .burger.open span:nth-child(3){transform:translateY(-7px) rotate(-45deg)}
+
+  /* ===== 头部 ===== */
+  header{padding:120px 0 44px;border-bottom:1px solid var(--line);background:linear-gradient(180deg,rgba(79,195,247,.05),transparent 70%)}
+  header .kicker{color:var(--acc);letter-spacing:.3em;font-size:12px;margin-bottom:14px}
+  header h1{font-size:clamp(26px,5.5vw,40px);line-height:1.35;color:#fff}
+  header h1 em{font-style:normal;color:var(--acc)}
+  header .meta{margin-top:16px;font-size:13px;display:flex;flex-wrap:wrap;gap:8px 22px}
+  header .meta b{color:var(--text);font-weight:600}
+
+  /* ===== 本周总览（客户区）===== */
+  .verdict{padding:40px 0 8px}
+  .verdict .box{background:var(--card);border:1px solid var(--line);border-radius:16px;padding:28px 30px;position:relative;overflow:hidden}
+  .verdict .box::before{content:"";position:absolute;left:0;top:0;bottom:0;width:4px;background:var(--acc)}
+  .verdict p{font-size:15px;margin-bottom:10px}
+  .verdict p:last-child{margin-bottom:0}
+  .verdict b{color:var(--text)}
+
+  /* ===== 红绿灯看板 ===== */
+  .board{padding:36px 0 8px}
+  .secno{color:var(--acc);font-size:12.5px;letter-spacing:.25em;margin-bottom:12px}
+  h2.sec{font-size:24px;color:#fff;margin-bottom:6px}
+  h2.sec em{font-style:normal;color:var(--acc)}
+  .sub{font-size:14px;margin-bottom:22px}
+  .lights{display:grid;grid-template-columns:repeat(auto-fill,minmax(260px,1fr));gap:14px}
+  .light{background:var(--card);border:1px solid var(--line);border-radius:14px;padding:18px 20px;position:relative}
+  .light .row1{display:flex;justify-content:space-between;align-items:center;margin-bottom:8px}
+  .light .nm{font-weight:700;color:#fff;font-size:15px}
+  .pill{font-size:11px;padding:3px 12px;border-radius:12px;font-weight:700;white-space:nowrap}
+  .pill.bull{background:rgba(81,216,138,.14);color:var(--bull)}
+  .pill.bear{background:rgba(255,107,107,.14);color:var(--bear)}
+  .pill.neu{background:rgba(255,180,84,.14);color:var(--neu)}
+  .light .val{font-size:24px;font-weight:800;font-family:"Noto Serif SC",serif;color:var(--acc);line-height:1.2}
+  .light .val small{font-size:13px;font-weight:400;color:var(--text)}
+  .light .chg{font-size:12px;margin-top:6px}
+  .light .chg.up{color:var(--bull)} .light .chg.dn{color:var(--bear)} .light .chg.flat{color:var(--text)}
+  .light .src{font-size:11px;margin-top:10px;opacity:.75;display:flex;justify-content:space-between;gap:8px;flex-wrap:wrap}
+
+  /* ===== 七信号明细（内部区）===== */
+  .detail{padding:44px 0 8px}
+  table.dt{width:100%;border-collapse:collapse;font-size:14px;margin:18px 0;background:var(--card);border-radius:12px;overflow:hidden;border:1px solid var(--line)}
+  table.dt th{background:rgba(79,195,247,.08);color:var(--acc);text-align:left;padding:12px 14px;font-weight:600;border-bottom:1px solid var(--line);white-space:nowrap;font-size:13px}
+  table.dt td{padding:12px 14px;border-bottom:1px solid rgba(31,58,92,.5);vertical-align:top;line-height:1.7;font-weight:400}
+  table.dt tr:last-child td{border-bottom:none}
+  table.dt td b{color:#fff;font-weight:600}
+  .tag-bull{color:var(--bull);font-weight:700} .tag-bear{color:var(--bear);font-weight:700} .tag-neu{color:var(--neu);font-weight:700}
+
+  /* ===== 历史趋势图 ===== */
+  .chartbox{background:var(--card);border:1px solid var(--line);border-radius:14px;padding:18px 16px 8px;margin:16px 0;min-width:0;overflow:hidden}
+  .chartbox .ct{font-weight:700;color:#fff;font-size:15px;margin-bottom:2px}
+  .chartbox .cs{font-size:12px;margin-bottom:8px}
+  .chart{width:100%;height:340px;min-width:0}
+
+  /* ===== 提示块 ===== */
+  .callout{border-left:3px solid var(--acc);background:rgba(79,195,247,.07);padding:16px 20px;border-radius:0 12px 12px 0;margin:26px 0;font-size:14.5px}
+  .callout b{color:var(--text)}
+  .manual{background:var(--card2);border:1px dashed var(--line);border-radius:12px;padding:14px 18px;font-size:12.5px;margin:14px 0}
+  .manual b{color:var(--acc)}
+
+  footer{padding:50px 0 80px;border-top:1px solid var(--line);font-size:12.5px;margin-top:50px}
+  footer p{margin-top:8px}
+
+  @media(max-width:760px){
+    #topnav .links{display:none;position:absolute;top:100%;left:0;right:0;flex-direction:column;background:var(--bg2);border-bottom:1px solid var(--line);padding:8px 22px 16px;gap:0}
+    #topnav .links.open{display:flex}
+    #topnav .links a{padding:13px 0;border-bottom:1px solid rgba(31,58,92,.3);font-size:15px;border-radius:0}
+    #topnav .links a:last-child{border-bottom:none}
+    #topnav .burger{display:block}
+    header{padding:96px 0 36px}
+    .verdict .box{padding:22px 20px}
+    table.dt{display:block;overflow-x:auto;-webkit-overflow-scrolling:touch;font-size:15px;white-space:nowrap;-webkit-text-size-adjust:100%;text-size-adjust:100%}
+    table.dt th{font-size:14px;padding:13px 16px}
+    table.dt td{padding:13px 16px;font-size:15px;-webkit-text-size-adjust:100%;text-size-adjust:100%}
+    table.dt td b{font-size:15px}
+    table.dt td:last-child{white-space:normal;min-width:220px}
+    .chart{height:300px}
+    .light .val{font-size:26px}
+  }
+</style>
+</head>
+<body>
+
+<nav id="topnav">
+  <div class="bar">
+    <a class="brand" href="./" aria-label="QOSA"><img src="logo-white.png" alt="QOSA"></a>
+    <span class="wk" id="wkLabel">WEEKLY</span>
+    <button class="burger" id="burger" aria-label="菜单" aria-expanded="false"><span></span><span></span><span></span></button>
+    <div class="links" id="navlinks">
+      <a href="#verdict">本周解读</a>
+      <a href="#board">信号看板</a>
+      <a href="#detail">明细与阈值</a>
+      <a href="#trend">趋势</a>
+    </div>
+  </div>
+</nav>
+
+<header>
+  <div class="wrap">
+    <div class="kicker">LPG WEEKLY SIGNAL TRACKER</div>
+    <h1 class="serif">七信号周报：<em id="weekTitle">—</em></h1>
+    <div class="meta">
+      <span>统计窗口：<b id="winLabel">—</b></span>
+      <span>发布：<b id="pubLabel">—</b></span>
+      <span>数据状态：<b id="freshLabel">—</b></span>
+    </div>
+  </div>
+</header>
+
+<!-- ===== 客户区：本周解读 ===== -->
+<section class="verdict" id="verdict">
+  <div class="wrap">
+    <div class="secno">FOR CLIENTS</div>
+    <h2 class="sec serif">本周<em>一句话</em></h2>
+    <div class="box" style="margin-top:18px">
+      <p id="oneLiner">—</p>
+      <p id="clientNote" style="margin-top:12px"></p>
+    </div>
+    <div class="callout"><b>经纪人动作建议：</b><span id="actionNote">—</span></div>
+  </div>
+</section>
+
+<!-- ===== 信号看板（红绿灯）===== -->
+<section class="board" id="board">
+  <div class="wrap">
+    <div class="secno">SIGNAL BOARD</div>
+    <h2 class="sec serif">七个信号，<em>红绿灯</em></h2>
+    <p class="sub">绿 = 支撑运价（多头方向），红 = 压制运价（空头方向），黄 = 中性/观望。判定依据见下方阈值表。</p>
+    <div class="lights" id="lights"></div>
+  </div>
+</section>
+
+<!-- ===== 内部区：明细与阈值 ===== -->
+<section class="detail" id="detail">
+  <div class="wrap">
+    <div class="secno">INTERNAL · 内部明细</div>
+    <h2 class="sec serif">读数、阈值与<em>证伪线</em></h2>
+    <table class="dt" id="sigTable">
+      <tr><th>信号</th><th>本周读数</th><th>方向</th><th>多头证伪线</th><th>空头证伪线</th><th>数据源</th></tr>
+    </table>
+    <div class="manual"><b>数据维护说明：</b>BLPG3 即期 TCE 为 Baltic Exchange 付费数据，页面不自动抓取，请每周五评估发布后由值班同事在 <b>weekly-data.js</b> 中更新；其余公开源（EIA、ACP、straits.live 聚合等）由页面每 6 小时自动拉取，拉取失败时回落到最近一次人工录入值并标注"手动"。</div>
+  </div>
+</section>
+
+<!-- ===== 趋势 ===== -->
+<section class="detail" id="trend">
+  <div class="wrap">
+    <div class="secno">TREND</div>
+    <h2 class="sec serif">近 12 周<em>走势</em></h2>
+    <div class="chartbox">
+      <div class="ct">BLPG3 即期 TCE（$/天）</div>
+      <div class="cs">Baltic Exchange 周度评估 · 人工录入</div>
+      <div id="c_tce" class="chart"></div>
+    </div>
+    <div class="chartbox">
+      <div class="ct">霍尔木兹日通行量 vs 美国出口量</div>
+      <div class="cs">straits.live / EIA · 自动拉取</div>
+      <div id="c_flow" class="chart"></div>
+    </div>
+  </div>
+</section>
+
+<footer>
+  <div class="wrap">
+    <div class="serif" style="font-size:16px;font-weight:700;color:#fff">QOSA · LPG 七信号周报</div>
+    <p>每周更新一次。公开数据来自 Baltic Exchange（人工录入）、EIA、ACP、straits.live 等；自动拉取失败时以人工录入值为准。</p>
+    <p><b>免责声明</b>：本页仅供一般信息与研究参考，不构成任何证券、船舶资产或运费衍生品的投资建议。航运与大宗商品市场波动剧烈，任何决策请咨询持牌专业人士。</p>
+  </div>
+</footer>
+
+<script src="https://cdn.jsdelivr.net/npm/echarts@5.5.1/dist/echarts.min.js"></script>
+<script src="weekly-data.js"></script>
+<script>
+/* ========== 渲染逻辑 ========== */
+const D = window.WEEKLY;  // 来自 weekly-data.js
+
+document.getElementById('weekTitle').textContent = D.weekLabel;
+document.getElementById('wkLabel').textContent = 'LPG · ' + D.weekLabel;
+document.title = 'QOSA · LPG 七信号周报 ' + D.weekLabel;
+document.getElementById('winLabel').textContent = D.window;
+document.getElementById('pubLabel').textContent = D.published;
+document.getElementById('oneLiner').innerHTML = D.oneLiner;
+document.getElementById('clientNote').innerHTML = D.clientNote;
+document.getElementById('actionNote').innerHTML = D.actionNote;
+
+/* 红绿灯看板 */
+const boardEl = document.getElementById('lights');
+const pillMap = {bull:['bull','支撑运价'], bear:['bear','压制运价'], neu:['neu','中性观望']};
+D.signals.forEach(s=>{
+  const [cls,txt] = pillMap[s.state];
+  const chgCls = s.chgVal > 0 ? 'up' : (s.chgVal < 0 ? 'dn' : 'flat');
+  const arrow = s.chgVal > 0 ? '▲' : (s.chgVal < 0 ? '▼' : '—');
+  boardEl.insertAdjacentHTML('beforeend', `
+    <div class="light">
+      <div class="row1"><span class="nm">${s.name}</span><span class="pill ${cls}">${txt}</span></div>
+      <div class="val">${s.value}<small> ${s.unit||''}</small></div>
+      <div class="chg ${chgCls}">${arrow} 周环比 ${s.chg}</div>
+      <div class="src"><span>${s.source}</span><span>${s.auto?'自动':'手动'} · ${s.updated}</span></div>
+    </div>`);
+});
+
+/* 明细表 */
+const tbl = document.getElementById('sigTable');
+D.signals.forEach(s=>{
+  const tag = s.state==='bull' ? '<span class="tag-bull">多</span>' : (s.state==='bear' ? '<span class="tag-bear">空</span>' : '<span class="tag-neu">观望</span>');
+  tbl.insertAdjacentHTML('beforeend', `<tr>
+    <td><b>${s.name}</b></td><td>${s.value}${s.unit||''}</td><td>${tag}</td>
+    <td>${s.bullLine}</td><td>${s.bearLine}</td><td>${s.source}</td></tr>`);
+});
+
+/* ========== 图表 ========== */
+const isMobile = window.innerWidth <= 760;
+const baseAxis = {axisLine:{lineStyle:{color:'#1f3a5c'}},axisLabel:{color:'#c6d3e2',fontSize:11},splitLine:{lineStyle:{color:'rgba(31,58,92,.35)'}}};
+const baseTooltip = {trigger:'axis',backgroundColor:'#0e1c2e',borderColor:'#1f3a5c',textStyle:{color:'#e8f0f8',fontSize:12}};
+const baseGrid = {left:isMobile?50:60,right:16,top:36,bottom:40};
+const baseLegend = {textStyle:{color:'#c6d3e2',fontSize:isMobile?10:11},top:0};
+
+const charts = [];
+function mk(id,opt){ const c = echarts.init(document.getElementById(id)); c.setOption(opt); charts.push(c); }
+
+mk('c_tce',{
+  tooltip:baseTooltip, grid:baseGrid,
+  xAxis:{type:'category',data:D.hist.weeks,...baseAxis},
+  yAxis:{type:'value',name:'$/天',...baseAxis},
+  series:[{type:'line',smooth:true,data:D.hist.tce,symbolSize:6,
+    lineStyle:{width:3,color:'#4fc3f7'},itemStyle:{color:'#4fc3f7'},
+    areaStyle:{color:{type:'linear',x:0,y:0,x2:0,y2:1,colorStops:[{offset:0,color:'rgba(79,195,247,.25)'},{offset:1,color:'rgba(79,195,247,0)'}]}},
+    markLine:{symbol:'none',lineStyle:{color:'#ffb454',type:'dashed'},label:{color:'#ffb454',formatter:'多头证伪 $60K'},data:[{yAxis:60000}]}
+  }]
+});
+
+mk('c_flow',{
+  tooltip:baseTooltip, grid:{...baseGrid,right:isMobile?50:60}, legend:baseLegend,
+  xAxis:{type:'category',data:D.hist.weeks,...baseAxis},
+  yAxis:[{type:'value',name:'艘/天',...baseAxis},{type:'value',name:'M桶/天',...baseAxis,splitLine:{show:false}}],
+  series:[
+    {name:'霍尔木兹通行量',type:'bar',barWidth:14,itemStyle:{color:'#4fc3f7'},data:D.hist.hormuz},
+    {name:'美国出口量',type:'line',yAxisIndex:1,smooth:true,lineStyle:{width:3,color:'#ffb454'},itemStyle:{color:'#ffb454'},data:D.hist.usExport}
+  ]
+});
+
+let rt; window.addEventListener('resize',()=>{clearTimeout(rt);rt=setTimeout(()=>charts.forEach(c=>c.resize()),200)});
+
+/* ========== 汉堡菜单 ========== */
+const burger = document.getElementById('burger'), links = document.getElementById('navlinks');
+burger.addEventListener('click',()=>{
+  const open = links.classList.toggle('open');
+  burger.classList.toggle('open',open);
+  burger.setAttribute('aria-expanded',open);
+});
+links.querySelectorAll('a').forEach(a=>a.addEventListener('click',()=>{
+  links.classList.remove('open'); burger.classList.remove('open');
+}));
+
+/* ========== 数据状态提示 ========== */
+(function(){
+  document.getElementById('freshLabel').textContent = '人工录入（截至 ' + D.dataAsOf + '）';
+})();
+</script>
+</body>
+</html>
