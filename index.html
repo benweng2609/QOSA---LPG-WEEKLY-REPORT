@@ -29,7 +29,9 @@
   #topnav{position:fixed;top:0;left:0;right:0;z-index:50;background:rgba(10,20,32,.92);backdrop-filter:blur(10px);border-bottom:1px solid var(--line)}
   #topnav .bar{max-width:960px;margin:0 auto;padding:10px 22px;display:flex;align-items:center;justify-content:space-between}
   #topnav .brand img{height:30px;display:block}
-  #topnav .wk{font-size:13px;color:var(--acc);letter-spacing:.15em;font-weight:600}
+  #topnav .wk{font-size:13px;color:var(--acc);letter-spacing:.15em;font-weight:600;white-space:nowrap}
+  #topnav .wkpicker{background:var(--card);color:var(--acc);border:1px solid var(--line);border-radius:12px;font-size:12px;padding:4px 8px;font-family:inherit;cursor:pointer;max-width:170px}
+  #topnav .wkpicker:focus{outline:none;border-color:var(--acc)}
   #topnav .links{display:flex;gap:4px}
   #topnav .links a{color:var(--text);padding:4px 12px;border-radius:14px;font-size:13px;transition:.2s}
   #topnav .links a:hover{color:var(--acc);background:rgba(79,195,247,.12)}
@@ -124,6 +126,7 @@
   <div class="bar">
     <a class="brand" href="./" aria-label="QOSA"><img src="logo-white.png" alt="QOSA"></a>
     <span class="wk" id="wkLabel">WEEKLY</span>
+    <select class="wkpicker" id="weekPicker" aria-label="选择期次"></select>
     <button class="burger" id="burger" aria-label="菜单" aria-expanded="false"><span></span><span></span><span></span></button>
     <div class="links" id="navlinks">
       <a href="#verdict">本周解读</a>
@@ -208,74 +211,108 @@
 
 <script src="https://cdn.jsdelivr.net/npm/echarts@5.5.1/dist/echarts.min.js"></script>
 <script src="weekly-data.js"></script>
+<script src="archive/index.js"></script>
 <script>
-/* ========== 渲染逻辑 ========== */
-const D = window.WEEKLY;  // 来自 weekly-data.js
-
-document.getElementById('weekTitle').textContent = D.weekLabel;
-document.getElementById('wkLabel').textContent = 'LPG · ' + D.weekLabel;
-document.title = 'QOSA · LPG 七信号周报 ' + D.weekLabel;
-document.getElementById('winLabel').textContent = D.window;
-document.getElementById('pubLabel').textContent = D.published;
-document.getElementById('oneLiner').innerHTML = D.oneLiner;
-document.getElementById('clientNote').innerHTML = D.clientNote;
-document.getElementById('actionNote').innerHTML = D.actionNote;
-
-/* 红绿灯看板 */
-const boardEl = document.getElementById('lights');
-const pillMap = {bull:['bull','支撑运价'], bear:['bear','压制运价'], neu:['neu','中性观望']};
-D.signals.forEach(s=>{
-  const [cls,txt] = pillMap[s.state];
-  const chgCls = s.chgVal > 0 ? 'up' : (s.chgVal < 0 ? 'dn' : 'flat');
-  const arrow = s.chgVal > 0 ? '▲' : (s.chgVal < 0 ? '▼' : '—');
-  boardEl.insertAdjacentHTML('beforeend', `
-    <div class="light">
-      <div class="row1"><span class="nm">${s.name}</span><span class="pill ${cls}">${txt}</span></div>
-      <div class="val">${s.value}<small> ${s.unit||''}</small></div>
-      <div class="chg ${chgCls}">${arrow} 周环比 ${s.chg}</div>
-      <div class="src"><span>${s.source}</span><span>${s.auto?'自动':'手动'} · ${s.updated}</span></div>
-    </div>`);
-});
-
-/* 明细表 */
-const tbl = document.getElementById('sigTable');
-D.signals.forEach(s=>{
-  const tag = s.state==='bull' ? '<span class="tag-bull">多</span>' : (s.state==='bear' ? '<span class="tag-bear">空</span>' : '<span class="tag-neu">观望</span>');
-  tbl.insertAdjacentHTML('beforeend', `<tr>
-    <td><b>${s.name}</b></td><td>${s.value}${s.unit||''}</td><td>${tag}</td>
-    <td>${s.bullLine}</td><td>${s.bearLine}</td><td>${s.source}</td></tr>`);
-});
-
-/* ========== 图表 ========== */
-const isMobile = window.innerWidth <= 760;
-const baseAxis = {axisLine:{lineStyle:{color:'#1f3a5c'}},axisLabel:{color:'#c6d3e2',fontSize:11},splitLine:{lineStyle:{color:'rgba(31,58,92,.35)'}}};
-const baseTooltip = {trigger:'axis',backgroundColor:'#0e1c2e',borderColor:'#1f3a5c',textStyle:{color:'#e8f0f8',fontSize:12}};
-const baseGrid = {left:isMobile?50:60,right:16,top:36,bottom:40};
-const baseLegend = {textStyle:{color:'#c6d3e2',fontSize:isMobile?10:11},top:0};
-
+/* ========== 渲染逻辑（render(D) 可重复调用，支持期次切换）========== */
+const CURRENT = window.WEEKLY;                      // 本周最新数据（weekly-data.js）
+const ARCHIVE_WEEKS = window.WEEKLY_ARCHIVE || [];  // 存档期次清单（archive/index.js）
 const charts = [];
-function mk(id,opt){ const c = echarts.init(document.getElementById(id)); c.setOption(opt); charts.push(c); }
 
-mk('c_tce',{
-  tooltip:baseTooltip, grid:baseGrid,
-  xAxis:{type:'category',data:D.hist.weeks,...baseAxis},
-  yAxis:{type:'value',name:'$/天',...baseAxis},
-  series:[{type:'line',smooth:true,data:D.hist.tce,symbolSize:6,
-    lineStyle:{width:3,color:'#4fc3f7'},itemStyle:{color:'#4fc3f7'},
-    areaStyle:{color:{type:'linear',x:0,y:0,x2:0,y2:1,colorStops:[{offset:0,color:'rgba(79,195,247,.25)'},{offset:1,color:'rgba(79,195,247,0)'}]}},
-    markLine:{symbol:'none',lineStyle:{color:'#ffb454',type:'dashed'},label:{color:'#ffb454',formatter:'多头证伪 $60K'},data:[{yAxis:60000}]}
-  }]
+function render(D){
+  document.getElementById('weekTitle').textContent = D.weekLabel;
+  document.getElementById('wkLabel').textContent = 'LPG · ' + D.weekLabel;
+  document.title = 'QOSA · LPG 七信号周报 ' + D.weekLabel;
+  document.getElementById('winLabel').textContent = D.window;
+  document.getElementById('pubLabel').textContent = D.published;
+  document.getElementById('oneLiner').innerHTML = D.oneLiner;
+  document.getElementById('clientNote').innerHTML = D.clientNote;
+  document.getElementById('actionNote').innerHTML = D.actionNote;
+  document.getElementById('freshLabel').textContent = '人工录入（截至 ' + D.dataAsOf + '）';
+
+  /* 红绿灯看板 */
+  const boardEl = document.getElementById('lights');
+  const pillMap = {bull:['bull','支撑运价'], bear:['bear','压制运价'], neu:['neu','中性观望']};
+  boardEl.innerHTML = '';
+  D.signals.forEach(s=>{
+    const [cls,txt] = pillMap[s.state];
+    const chgCls = s.chgVal > 0 ? 'up' : (s.chgVal < 0 ? 'dn' : 'flat');
+    const arrow = s.chgVal > 0 ? '▲' : (s.chgVal < 0 ? '▼' : '—');
+    boardEl.insertAdjacentHTML('beforeend', `
+      <div class="light">
+        <div class="row1"><span class="nm">${s.name}</span><span class="pill ${cls}">${txt}</span></div>
+        <div class="val">${s.value}<small> ${s.unit||''}</small></div>
+        <div class="chg ${chgCls}">${arrow} 周环比 ${s.chg}</div>
+        <div class="src"><span>${s.source}</span><span>${s.auto?'自动':'手动'} · ${s.updated}</span></div>
+      </div>`);
+  });
+
+  /* 明细表 */
+  const tbl = document.getElementById('sigTable');
+  while(tbl.rows.length>1) tbl.deleteRow(1);
+  D.signals.forEach(s=>{
+    const tag = s.state==='bull' ? '<span class="tag-bull">多</span>' : (s.state==='bear' ? '<span class="tag-bear">空</span>' : '<span class="tag-neu">观望</span>');
+    tbl.insertAdjacentHTML('beforeend', `<tr>
+      <td><b>${s.name}</b></td><td>${s.value}${s.unit||''}</td><td>${tag}</td>
+      <td>${s.bullLine}</td><td>${s.bearLine}</td><td>${s.source}</td></tr>`);
+  });
+
+  /* ========== 图表 ========== */
+  const isMobile = window.innerWidth <= 760;
+  const baseAxis = {axisLine:{lineStyle:{color:'#1f3a5c'}},axisLabel:{color:'#c6d3e2',fontSize:11},splitLine:{lineStyle:{color:'rgba(31,58,92,.35)'}}};
+  const baseTooltip = {trigger:'axis',backgroundColor:'#0e1c2e',borderColor:'#1f3a5c',textStyle:{color:'#e8f0f8',fontSize:12}};
+  const baseGrid = {left:isMobile?50:60,right:16,top:36,bottom:40};
+  const baseLegend = {textStyle:{color:'#c6d3e2',fontSize:isMobile?10:11},top:0};
+
+  charts.forEach(c=>c.dispose()); charts.length=0;
+  function mk(id,opt){ const c = echarts.init(document.getElementById(id)); c.setOption(opt); charts.push(c); }
+
+  mk('c_tce',{
+    tooltip:baseTooltip, grid:baseGrid,
+    xAxis:{type:'category',data:D.hist.weeks,...baseAxis},
+    yAxis:{type:'value',name:'$/天',...baseAxis},
+    series:[{type:'line',smooth:true,data:D.hist.tce,symbolSize:6,
+      lineStyle:{width:3,color:'#4fc3f7'},itemStyle:{color:'#4fc3f7'},
+      areaStyle:{color:{type:'linear',x:0,y:0,x2:0,y2:1,colorStops:[{offset:0,color:'rgba(79,195,247,.25)'},{offset:1,color:'rgba(79,195,247,0)'}]}},
+      markLine:{symbol:'none',lineStyle:{color:'#ffb454',type:'dashed'},label:{color:'#ffb454',formatter:'多头证伪 $60K'},data:[{yAxis:60000}]}
+    }]
+  });
+
+  mk('c_flow',{
+    tooltip:baseTooltip, grid:{...baseGrid,right:isMobile?50:60}, legend:baseLegend,
+    xAxis:{type:'category',data:D.hist.weeks,...baseAxis},
+    yAxis:[{type:'value',name:'艘/天',...baseAxis},{type:'value',name:'M桶/天',...baseAxis,splitLine:{show:false}}],
+    series:[
+      {name:'霍尔木兹通行量',type:'bar',barWidth:14,itemStyle:{color:'#4fc3f7'},data:D.hist.hormuz},
+      {name:'美国出口量',type:'line',yAxisIndex:1,smooth:true,lineStyle:{width:3,color:'#ffb454'},itemStyle:{color:'#ffb454'},data:D.hist.usExport}
+    ]
+  });
+}  /* end render */
+
+/* ========== 期次选择器 ========== */
+const picker = document.getElementById('weekPicker');
+function periodLabel(p){ const m = p.match(/^(\d{4})-W(\d{1,2})$/); return m ? (m[1] + ' 年第 ' + parseInt(m[2],10) + ' 周') : p; }
+picker.insertAdjacentHTML('beforeend', '<option value="current">本周最新 · ' + CURRENT.weekLabel + '</option>');
+ARCHIVE_WEEKS.forEach(p=>picker.insertAdjacentHTML('beforeend', '<option value="' + p + '">历史 · ' + periodLabel(p) + '</option>'));
+
+let loadingWeek = false;
+picker.addEventListener('change', ()=>{
+  const v = picker.value;
+  if(v === 'current'){ render(CURRENT); window.scrollTo(0,0); return; }
+  if(loadingWeek) return;
+  loadingWeek = true;
+  const s = document.createElement('script');
+  s.src = 'archive/weekly-data_' + v + '.js';
+  s.onload = ()=>{
+    const data = window.WEEKLY; window.WEEKLY = CURRENT;  // 存档文件会覆盖全局对象，取回后还原
+    render(data); window.scrollTo(0,0);
+    loadingWeek = false; s.remove();
+  };
+  s.onerror = ()=>{ alert('该期存档加载失败，请稍后再试'); picker.value = 'current'; loadingWeek = false; s.remove(); };
+  document.body.appendChild(s);
 });
 
-mk('c_flow',{
-  tooltip:baseTooltip, grid:{...baseGrid,right:isMobile?50:60}, legend:baseLegend,
-  xAxis:{type:'category',data:D.hist.weeks,...baseAxis},
-  yAxis:[{type:'value',name:'艘/天',...baseAxis},{type:'value',name:'M桶/天',...baseAxis,splitLine:{show:false}}],
-  series:[
-    {name:'霍尔木兹通行量',type:'bar',barWidth:14,itemStyle:{color:'#4fc3f7'},data:D.hist.hormuz},
-    {name:'美国出口量',type:'line',yAxisIndex:1,smooth:true,lineStyle:{width:3,color:'#ffb454'},itemStyle:{color:'#ffb454'},data:D.hist.usExport}
-  ]
-});
+/* 初次渲染 */
+render(CURRENT);
 
 let rt; window.addEventListener('resize',()=>{clearTimeout(rt);rt=setTimeout(()=>charts.forEach(c=>c.resize()),200)});
 
@@ -289,11 +326,6 @@ burger.addEventListener('click',()=>{
 links.querySelectorAll('a').forEach(a=>a.addEventListener('click',()=>{
   links.classList.remove('open'); burger.classList.remove('open');
 }));
-
-/* ========== 数据状态提示 ========== */
-(function(){
-  document.getElementById('freshLabel').textContent = '人工录入（截至 ' + D.dataAsOf + '）';
-})();
 </script>
 </body>
 </html>
